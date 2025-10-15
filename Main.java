@@ -71,7 +71,7 @@ public class Main {
                                 "Erro", JOptionPane.WARNING_MESSAGE);
                     }
                         // instancia um objeto
-                        PesquisaSQL pesquisar = new PesquisaSQL();
+                        Search pesquisar = new Search();
                         try {
                             pesquisar.executeQuery(query, caminhoPath, colunasStr);
                             labelConectando.setForeground(Color.GREEN);
