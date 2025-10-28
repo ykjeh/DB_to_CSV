@@ -25,17 +25,23 @@ class PesquisaSQL {
             String url = "jdbc:mysql://127.10.20.30:3306/medicoes_indiretas";
             String user = "root";
             String password = "#Curitiba@123";
-            Path caminho = Paths.get(caminhoStr);
             String[] colunas = colunasStr.split(",");
+            String desktopPath = System.getProperty("user.home") + "/Desktop/";
+            String caminhoNome;
+            Path Caminho;
 
-
+        if (caminhoStr.equals("")){
+                Caminho = Paths.get(desktopPath);
+        } else {
+                Caminho = Paths.get(caminhoStr);
+        }
             try {
-                Files.createFile(caminho);
+                Files.createFile(Caminho);
             } catch (Exception e) {
                 System.err.println("Archive already exists: " + e.getMessage());
             }
             String header = String.join(", ", colunasStr) + "\n";
-            Files.write(caminho, header.getBytes(), StandardOpenOption.APPEND);
+            Files.write(Caminho, header.getBytes(), StandardOpenOption.APPEND);
 
             //   do the connection and execute query
             try (Connection conn = DriverManager.getConnection(url, user, password);
@@ -58,7 +64,7 @@ class PesquisaSQL {
                     }
                     // break row after expand the limit of columns
                     linha.append("\n");
-                    Files.write(caminho, linha.toString().getBytes(), StandardOpenOption.APPEND);
+                    Files.write(Caminho, linha.toString().getBytes(), StandardOpenOption.APPEND);
 
                 }
 
