@@ -93,10 +93,10 @@ class Search {
     }
 }
 
-class Testar1 extends Thread {
+class Testar extends Thread {
     public static void main(String[] args) throws IOException {
-        Testar1 thread = new Testar1();
-        thread.start();
+        Testar thread = new Testar();
+        thread.start()
     }
 }
 
