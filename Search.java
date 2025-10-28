@@ -1,8 +1,4 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,68 +15,89 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 
 
-class PesquisaSQL {
+class Search {
 
-        String executeQuery(String query, String caminhoStr, String colunasStr) throws IOException {
-            String url = "jdbc:mysql://127.10.20.30:3306/medicoes_indiretas";
-            String user = "root";
-            String password = "#Curitiba@123";
-            String[] colunas = colunasStr.split(",");
-            String desktopPath = System.getProperty("user.home") + "/Desktop/";
-            String caminhoNome;
-            Path Caminho;
+    String executeQuery(String url, String user, String password, String query, String nomeTxt) throws IOException {
 
-        if (caminhoStr.equals("")){
-                Caminho = Paths.get(desktopPath);
-        } else {
-                Caminho = Paths.get(caminhoStr);
-        }
+        String desktopPath = System.getProperty("user.home") + "/Desktop/";
+        String caminhoNome;
+        Path Caminho;
+
+            if (nomeTxt.equals("")){
+                caminhoNome = desktopPath + "Extracao.txt";
+                Caminho = Paths.get(caminhoNome);
+            } else {
+                caminhoNome = desktopPath + nomeTxt + ".txt";
+                Caminho = Paths.get(caminhoNome);
+            }
             try {
                 Files.createFile(Caminho);
+                
             } catch (Exception e) {
-                System.err.println("Archive already exists: " + e.getMessage());
+                JOptionPane.showMessageDialog(null, "Aviso, o caminho pode estar errado" +
+                                " ou um arquivo com o mesmo caminho e nome ja existe. Verifique, por gentileza.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                System.err.println(e.getMessage());
             }
-            String header = String.join(", ", colunasStr) + "\n";
-            Files.write(Caminho, header.getBytes(), StandardOpenOption.APPEND);
 
-            //   do the connection and execute query
-            try (Connection conn = DriverManager.getConnection(url, user, password);
-                 PreparedStatement stmt = conn.prepareStatement(query);
-                 ResultSet rs = stmt.executeQuery()) {
-
-                // runs to the next record
-                while (rs.next()) {
-                    // string mutavel
+            try (Connection conexao = DriverManager.getConnection(url, user, password)) {
+                try (Statement stmt = conexao.createStatement();
+                     ResultSet rs = stmt.executeQuery(query)) {
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int numeroColunas = metaData.getColumnCount() - 1;
                     StringBuilder linha = new StringBuilder();
-                    //insert the results in the row according to the number of columns
-                    for (int i = 0; i < colunas.length; i++) {
-                        // get the column results
-                        String valor = rs.getString(colunas[i]);
-                        if (valor == null) valor = "";
-                        valor = valor.replace(",", ".");
-                        linha.append(valor);
-                        if (i < colunas.length - 1)
+                    for (int i = 1; i <= numeroColunas; i++) {
+                        String coluna = (metaData.getColumnName(i));
+                        linha.append(coluna);
+                        if (i < numeroColunas) {
                             linha.append(", ");
+                        }
                     }
-                    // break row after expand the limit of columns
                     linha.append("\n");
+
+                    // runs to the next record
+                    while (rs.next()) {
+                        for (int j = 0; j < numeroColunas; j++) {
+                            String valor = rs.getString(j + 1);
+                            valor = valor.replace(",", ".");
+                            linha.append(valor);
+                            if (valor == null) valor = "";
+                            if (j < numeroColunas - 1) {
+                                linha.append(", ");
+                            }
+                        }
+                        linha.append("\n");
+
+                    }
                     Files.write(Caminho, linha.toString().getBytes(), StandardOpenOption.APPEND);
 
+                } catch (SQLException e) {
+                    JOptionPane.showMessageDialog(null, "Erro na conexão, certifique-se de que os dados estão corretos.",
+                            "Erro", JOptionPane.WARNING_MESSAGE);
+
+                    throw new RuntimeException(e);
+
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Erro na conexão, verifique se o caminho e o nome das tabelas estão corretos!",
+                            "Erro", JOptionPane.WARNING_MESSAGE);
+                    throw new RuntimeException(e);
                 }
-
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(null, "Conection error, make sure the information is correct.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
-                System.out.println(ex);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, "Erro na conexão, certifique-se de que os dados estão corretos.",
+                        "Erro", JOptionPane.WARNING_MESSAGE);
+                throw new RuntimeException(e);
             }
-            return url;
-        }
-    }
 
-class Testar extends Thread {
+        return url;
+
+    }
+}
+
+class Testar1 extends Thread {
     public static void main(String[] args) throws IOException {
-        Testar thread = new Testar();
+        Testar1 thread = new Testar1();
         thread.start();
     }
 }
+
 
